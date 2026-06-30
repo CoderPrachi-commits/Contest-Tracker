@@ -7,36 +7,54 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
   <div class="container">
-
-    <!-- header -->
     <div class="header">
       <h1>Contest Tracker</h1>
-      <p>Never miss a coding contest</p>
+      <p>Upcoming & Past Contests from Major Platforms</p>
     </div>
 
-    <!-- filter buttons -->
+    <!-- Filter -->
     <div class="filter-section" id="filterBar"></div>
 
-    <!-- upcoming contests -->
+    <!-- Codeforces Analysis - Right Upper Corner -->
+    <div class="cf-analysis-box">
+  <div class="cf-header">
+    <h3>Codeforces Analysis</h3>
+    <span class="cf-close-btn" onclick="clearCFAnalysis()">✕</span>
+  </div>
+  <div class="cf-input-group">
+    <input type="text" id="cfHandle" placeholder="Enter CF Handle">
+    <button onclick="analyzeCodeforces()">Analyze</button>
+  </div>
+  <div id="cfResult" class="cf-result"></div>
+</div>
+
+    <!-- Upcoming Contests -->
     <div class="section">
-      <h2 class="section-title">
-        Upcoming Contests
+      <div class="section-title">
+        Upcoming Contests 
         <span class="count-badge" id="upcomingCount">0</span>
-      </h2>
+      </div>
       <div class="card-grid" id="upcomingGrid"></div>
     </div>
 
-    <!-- past contests -->
+    <!-- Past Contests -->
     <div class="section">
-      <h2 class="section-title">
-        Past Contests
+      <div class="section-title">
+        Past Contests 
         <span class="count-badge" id="pastCount">0</span>
-      </h2>
+      </div>
       <div class="card-grid" id="pastGrid"></div>
     </div>
+  </div>
 
+  <!-- AI Modal -->
+  <div class="modal" id="aiModal" style="display:none;">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h2 id="modalTitle">AI Analysis</h2>
+      <div id="modalBody"></div>
+    </div>
   </div>
 
   <script src="script.js"></script>
