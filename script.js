@@ -11,36 +11,29 @@ window.onload = function() {
 }
 
 // ==================== LOAD CONTESTS ====================
-function loadContests() {
-  document.getElementById('upcomingGrid').innerHTML = '<p class="loader">Loading...</p>'
-  document.getElementById('pastGrid').innerHTML = '<p class="loader">Loading...</p>'
+async function loadContests() {
+  document.getElementById('upcomingGrid').innerHTML = '<p class="loader">Loading...</p>';
+  document.getElementById('pastGrid').innerHTML = '<p class="loader">Loading...</p>';
 
-  const today = new Date().toISOString().split('T')[0]
+  try {
+    const [upcomingRes, pastRes] = await Promise.all([
+      fetch('/api/contests?type=upcoming'),
+      fetch('/api/contests?type=past')
+    ]);
 
-  const upcomingUrl = `https://clist.by/api/v1/json/contest/?username=dt_coder&api_key=8b89a22f5ea2c11ef10bb9b96c74137b8b105191&limit=100&format=json&order_by=start&start__gte=${today}`
-  const pastUrl = `https://clist.by/api/v1/json/contest/?username=dt_coder&api_key=8b89a22f5ea2c11ef10bb9b96c74137b8b105191&limit=50&format=json&order_by=-start&start__lt=${today}`
+    const upcomingJson = await upcomingRes.json();
+    const pastJson = await pastRes.json();
 
-  fetch(upcomingUrl)
-    .then(res => res.json())
-    .then(data => {
-      upcomingData = data.objects || []
-      showUpcoming(upcomingData)
-    })
-    .catch(err => {
-      console.error(err)
-      document.getElementById('upcomingGrid').innerHTML = '<p class="error">Error loading upcoming contests</p>'
-    })
+    upcomingData = upcomingJson.objects || [];
+    pastData = pastJson.objects || [];
 
-  fetch(pastUrl)
-    .then(res => res.json())
-    .then(data => {
-      pastData = data.objects || []
-      showPast(pastData)
-    })
-    .catch(err => {
-      console.error(err)
-      document.getElementById('pastGrid').innerHTML = '<p class="error">Error loading past contests</p>'
-    })
+    showUpcoming(upcomingData);
+    showPast(pastData);
+  } catch (err) {
+    console.error(err);
+    document.getElementById('upcomingGrid').innerHTML = '<p class="error">Error loading contests</p>';
+    document.getElementById('pastGrid').innerHTML = '<p class="error">Error loading contests</p>';
+  }
 }
 
 // ==================== FILTER BUTTONS ====================
@@ -231,67 +224,27 @@ function buildCalendarLink(contest) {
 }
 // ==================== GEMINI API ====================
 
-const GEMINI_API_KEY = "AQ.Ab8RN6JwFF2jlvGpHeQw9caOVJ1xnrWIdALzZHvnA-Zck1VgLQ"; // Paste your new key here
-
 async function callGemini(prompt) {
-    try {
-        const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    contents: [
-                        {
-                            parts: [
-                                {
-                                    text: prompt
-                                }
-                            ]
-                        }
-                    ],
-                    generationConfig: {
-                        temperature: 0.7,
-                        maxOutputTokens: 20000
-                    }
-                })
-            }
-        );
+  try {
+    const response = await fetch('/api/gemini', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ prompt }),
+    });
 
-        if (!response.ok) {
-            const error = await response.text();
-            console.error("Gemini API Error:", response.status);
-            console.error(error);
+    const data = await response.json();
 
-            if (response.status === 401) {
-                return "❌ Invalid API key.";
-            }
-
-            if (response.status === 403) {
-                return "❌ API access denied. Check your Gemini API project.";
-            }
-
-            if (response.status === 404) {
-                return "❌ Model not found.";
-            }
-
-            return `❌ API Error (${response.status})`;
-        }
-
-        const data = await response.json();
-        console.log(data);
-
-        return (
-            data.candidates?.[0]?.content?.parts?.[0]?.text ||
-            "No response generated."
-        );
-
-    } catch (err) {
-        console.error(err);
-        return "❌ Failed to connect to Gemini API.";
+    if (!response.ok) {
+      return data.error || 'API Error';
     }
+
+    return data.text || 'No response generated.';
+  } catch (err) {
+    console.error(err);
+    return '❌ Failed to connect to AI service.';
+  }
 }
 // ==================== AI TIPS (Only for Upcoming) ====================
 async function getAITips(contestName, platform) {
