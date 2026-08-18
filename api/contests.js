@@ -11,9 +11,9 @@ export default async function handler(req, res) {
 
   let url = '';
   if (type === 'upcoming') {
-    url = `https://clist.by/api/v1/json/contest/?username=${username}&api_key=${apiKey}&limit=100&format=json&order_by=start&start__gte=${today}`;
+    url = `https://clist.by/api/v1/json/contest/?username=dt_coder&api_key=8b89a22f5ea2c11ef10bb9b96c74137b8b105191&limit=100&format=json&order_by=start&start__gte=${today}`;
   } else {
-    url = `https://clist.by/api/v1/json/contest/?username=${username}&api_key=${apiKey}&limit=50&format=json&order_by=-start&start__lt=${today}`;
+    url = `https://clist.by/api/v1/json/contest/?username=dt_coder&api_key=8b89a22f5ea2c11ef10bb9b96c74137b8b105191&limit=50&format=json&order_by=-start&start__lt=${today}`;
   }
 
   try {
