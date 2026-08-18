@@ -247,19 +247,25 @@ async function callGemini(prompt) {
 }
 // ==================== AI TIPS (Only for Upcoming) ====================
 async function getAITips(contestName, platform) {
-  document.getElementById('modalTitle').textContent = `AI Tips - ${contestName}`
-  document.getElementById('aiModal').style.display = 'flex'
-  document.getElementById('modalBody').innerHTML = '<p class="loader">Generating detailed tips...</p>'
+  document.getElementById('modalTitle').textContent = `AI Tips - ${contestName}`;
+  document.getElementById('aiModal').style.display = 'flex';
+  document.getElementById('modalBody').innerHTML = '<p class="loader">Generating detailed tips...</p>';
 
   const prompt = `You are an experienced competitive programmer.
 
 Contest: "${contestName}" on ${platform}
 
 Give detailed practical advice including expected topics, strategy, time management, and common mistakes.
-Write in clean paragraphs with minimal formatting.`
+Write in clean paragraphs with minimal formatting.`;
 
-  const reply = await callGemini(prompt)
-  document.getElementById('modalBody').innerHTML = reply.replace(/\n/g, '<br>')
+  const reply = await callGemini(prompt);
+
+  // Safe handling
+  if (typeof reply === 'string') {
+    document.getElementById('modalBody').innerHTML = reply.replace(/\n/g, '<br>');
+  } else {
+    document.getElementById('modalBody').innerHTML = '❌ Failed to get AI response. Please try again.';
+  }
 }
 
 // ==================== CODEFORCES ANALYSIS ====================
