@@ -3,17 +3,21 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { prompt } = req.body;
-
-  if (!prompt) {
-    return res.status(400).json({ error: 'Prompt is required' });
-  }
-
-  const apiKey = process.env.GEMINI_API_KEY;
-
   try {
+    const { prompt } = req.body || {};
+
+    if (!prompt) {
+      return res.status(400).json({ error: 'Prompt is required' });
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    if (!apiKey) {
+      return res.status(500).json({ error: 'GEMINI_API_KEY is not set' });
+    }
+
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: {
@@ -27,7 +31,7 @@ export default async function handler(req, res) {
           ],
           generationConfig: {
             temperature: 0.7,
-            maxOutputTokens: 20000,
+            maxOutputTokens: 2048,
           },
         }),
       }
@@ -36,12 +40,18 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     if (!response.ok) {
-      return res.status(response.status).json({ error: data });
+      console.error('Gemini Error:', data);
+      return res.status(response.status).json({ 
+        error: data.error?.message || 'Gemini API error',
+        details: data 
+      });
     }
 
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated.';
-    res.status(200).json({ text });
+    return res.status(200).json({ text });
+
   } catch (error) {
-    res.status(500).json({ error: 'Failed to call Gemini API' });
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to call Gemini API' });
   }
 }
