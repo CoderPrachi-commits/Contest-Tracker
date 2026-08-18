@@ -35,7 +35,6 @@ async function loadContests() {
     document.getElementById('pastGrid').innerHTML = '<p class="error">Error loading contests</p>';
   }
 }
-
 // ==================== FILTER BUTTONS ====================
 function makeFilterButtons() {
   const filterBar = document.getElementById('filterBar')
