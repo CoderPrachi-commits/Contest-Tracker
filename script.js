@@ -287,7 +287,24 @@ async function analyzeCodeforces() {
       `${c.contestName} → Rating ${c.newRating} (${c.newRating - c.oldRating >= 0 ? '+' : ''}${c.newRating - c.oldRating})`
     ).join("\n")
 
-    const prompt = `You are a top Codeforces coach. Student: ${handle}\n\nRecent contests:\n${history}\n\nGive detailed analysis: trend, strengths, weak areas, and suggestions. Write cleanly.`
+  const prompt = `You are a senior competitive programmer who has solved many contests on Codeforces, LeetCode, CodeChef and AtCoder.
+
+Contest: "${contestName}"
+Platform: ${platform}
+
+Give realistic and practical advice for this contest. Cover these points in normal paragraphs:
+
+- What topics are most likely to appear
+- How to approach the problems (order of solving)
+- Time management strategy during the contest
+- Common mistakes people make in this type of contest
+- What to do if you get stuck on a problem
+
+Write in simple, clear language.
+Do not use markdown.
+Do not use bold text, stars, bullet points, or headings.
+Do not write "In summary" or any similar ending.
+Just write natural paragraphs.`;
 
     const reply = await callGemini(prompt)
     resultDiv.innerHTML = reply.replace(/\n/g, '<br>')
