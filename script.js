@@ -233,13 +233,13 @@ async function callGemini(prompt) {
       body: JSON.stringify({ prompt }),
     });
 
-    const data = await response.json();
+    const data = await response.json().catch(() => null);
 
     if (!response.ok) {
-      return data.error || 'API Error';
+      return data?.error || `API Error (${response.status})`;
     }
 
-    return data.text || 'No response generated.';
+    return data?.text || 'No response generated.';
   } catch (err) {
     console.error(err);
     return '❌ Failed to connect to AI service.';
