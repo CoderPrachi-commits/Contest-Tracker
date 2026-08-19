@@ -251,42 +251,6 @@ async function getAITips(contestName, platform) {
   document.getElementById('aiModal').style.display = 'flex';
   document.getElementById('modalBody').innerHTML = '<p class="loader">Generating detailed tips...</p>';
 
-  const prompt = `You are an experienced competitive programmer.
-
-Contest: "${contestName}" on ${platform}
-
-Give detailed practical advice including expected topics, strategy, time management, and common mistakes.
-Write in clean paragraphs with minimal formatting.`;
-
-  const reply = await callGemini(prompt);
-
-  // Safe handling
-  if (typeof reply === 'string') {
-    document.getElementById('modalBody').innerHTML = reply.replace(/\n/g, '<br>');
-  } else {
-    document.getElementById('modalBody').innerHTML = '❌ Failed to get AI response. Please try again.';
-  }
-}
-
-// ==================== CODEFORCES ANALYSIS ====================
-async function analyzeCodeforces() {
-  const handle = document.getElementById('cfHandle').value.trim()
-  if (!handle) return alert("Please enter your Codeforces handle!")
-
-  const resultDiv = document.getElementById('cfResult')
-  resultDiv.innerHTML = '<p class="loader">Analyzing your Codeforces performance...</p>'
-
-  try {
-    const res = await fetch(`https://codeforces.com/api/user.rating?handle=${handle}`)
-    const data = await res.json()
-
-    if (data.status !== "OK") throw new Error()
-
-    const contests = data.result.slice(-15)
-    let history = contests.map(c => 
-      `${c.contestName} → Rating ${c.newRating} (${c.newRating - c.oldRating >= 0 ? '+' : ''}${c.newRating - c.oldRating})`
-    ).join("\n")
-
   const prompt = `You are a senior competitive programmer who has solved many contests on Codeforces, LeetCode, CodeChef and AtCoder.
 
 Contest: "${contestName}"
@@ -306,10 +270,61 @@ Do not use bold text, stars, bullet points, or headings.
 Do not write "In summary" or any similar ending.
 Just write natural paragraphs.`;
 
-    const reply = await callGemini(prompt)
-    resultDiv.innerHTML = reply.replace(/\n/g, '<br>')
+  const reply = await callGemini(prompt);
+
+  if (typeof reply === 'string') {
+    document.getElementById('modalBody').innerHTML = reply.replace(/\n/g, '<br>');
+  } else {
+    document.getElementById('modalBody').innerHTML = '❌ Failed to get AI response. Please try again.';
+  }
+}
+
+// ==================== CODEFORCES ANALYSIS ====================
+async function analyzeCodeforces() {
+  const handle = document.getElementById('cfHandle').value.trim();
+  if (!handle) return alert("Please enter your Codeforces handle!");
+
+  const resultDiv = document.getElementById('cfResult');
+  resultDiv.innerHTML = '<p class="loader">Analyzing your Codeforces performance...</p>';
+
+  try {
+    const res = await fetch(`https://codeforces.com/api/user.rating?handle=${handle}`);
+    const data = await res.json();
+
+    if (data.status !== "OK") throw new Error();
+
+    const contests = data.result.slice(-15);
+
+    let history = contests.map(c => 
+      `${c.contestName} → Rating ${c.newRating} (${c.newRating - c.oldRating >= 0 ? '+' : ''}${c.newRating - c.oldRating})`
+    ).join("\n");
+
+    const prompt = `You are a top Codeforces coach.
+
+Student handle: ${handle}
+
+Recent contest history:
+${history}
+
+Give a detailed but clear analysis covering:
+- Overall rating trend
+- Strengths
+- Weak areas
+- Specific suggestions to improve
+
+Write in simple paragraphs.
+Do not use markdown, bold text, stars, or bullet points.`;
+
+    const reply = await callGemini(prompt);
+    
+    if (typeof reply === 'string') {
+      resultDiv.innerHTML = reply.replace(/\n/g, '<br>');
+    } else {
+      resultDiv.innerHTML = '❌ Failed to get analysis.';
+    }
+
   } catch (e) {
-    resultDiv.innerHTML = "❌ Invalid handle or failed to fetch data."
+    resultDiv.innerHTML = "❌ Invalid handle or failed to fetch data.";
   }
 }
 
