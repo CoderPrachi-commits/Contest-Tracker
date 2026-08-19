@@ -1,10 +1,9 @@
 export default async function handler(req, res) {
-  // Allow POST only
+  // Always return JSON
+  res.setHeader('Content-Type', 'application/json');
+
   if (req.method !== 'POST') {
-    return res.status(405).json({ 
-      error: 'Method not allowed',
-      receivedMethod: req.method 
-    });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
@@ -17,11 +16,11 @@ export default async function handler(req, res) {
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
-      return res.status(500).json({ error: 'GEMINI_API_KEY is missing' });
+      return res.status(500).json({ error: 'GEMINI_API_KEY is missing on server' });
     }
 
-    const response = await fetch(
-     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: {
@@ -33,24 +32,33 @@ export default async function handler(req, res) {
               parts: [{ text: prompt }],
             },
           ],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 2048,
+          },
         }),
       }
     );
 
-    const data = await response.json();
+    const data = await geminiRes.json();
 
-    if (!response.ok) {
-      return res.status(response.status).json({
-        error: data.error?.message || 'Gemini API error',
-        details: data
+    if (!geminiRes.ok) {
+      return res.status(geminiRes.status).json({
+        error: data?.error?.message || 'Gemini API error',
+        details: data,
       });
     }
 
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated.';
-    return res.status(200).json({ text });
+    const text =
+      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      'No response generated.';
 
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Server error' });
+    return res.status(200).json({ text });
+  } catch (err) {
+    console.error('Gemini function error:', err);
+    return res.status(500).json({
+      error: 'Server error',
+      message: err.message,
+    });
   }
 }
